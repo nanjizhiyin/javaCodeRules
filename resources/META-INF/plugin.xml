@@ -1,0 +1,40 @@
+<idea-plugin>
+  <id>com.xpfirst.plugin.javacoderules</id>
+  <name>javaCodeRules</name>
+  <version>1.0</version>
+  <vendor email="support@yoy.com" url="http://www.mpany.com">xpfirst cn</vendor>
+
+  <description><![CDATA[java代码规则的检查工具,如行数为80,空格是tab,最多不大于1000行的代码]]></description>
+
+  <change-notes><![CDATA[可以手动设置行数和总代码量,如果函数名字不规则可以提醒出来,判断诗句不合格也提醒]]></change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="173.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Add your extensions here -->
+    <!-- Add your extensions here -->
+    <!-- 自定义控制台输入 -->
+    <!--canCloseContents 允许用户关闭-->
+    <toolWindow canCloseContents="true" anchor="bottom"
+                id="输出"
+                factoryClass="com.xpfirst.MyToolWin">
+    </toolWindow>
+  </extensions>
+
+  <actions>
+    <!-- Add your actions here -->
+    <group id="MyPlugin.SampleMenu" text="代码规则" description="Sample menu">
+      <add-to-group group-id="MainMenu" anchor="last"  />
+      <action id="checkFuntion80" class="com.xpfirst.FunCheck" text="检查函数行数" description="每个函数不超过80行" />
+      <action id="check" class="com.xpfirst.IfCheck" text="IF语句检查" description="IF语句检查"/>
+    </group>
+  </actions>
+
+</idea-plugin>
