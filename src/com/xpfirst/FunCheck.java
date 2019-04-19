@@ -1,25 +1,18 @@
 package com.xpfirst;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.PsiUtilBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.util.HashMap;
-import java.util.Map;
 
 /*
  * @author gaojindan
@@ -34,7 +27,9 @@ public class FunCheck extends AnAction{
     //行node
     private final DefaultMutableTreeNode lineNode = new DefaultMutableTreeNode("行数超过80");
     //注释node
-    private final DefaultMutableTreeNode commentNode = new DefaultMutableTreeNode("注释不规则");
+    private final DefaultMutableTreeNode commentNode = new DefaultMutableTreeNode("注释不规范");
+    //if node
+    private final DefaultMutableTreeNode ifNode = new DefaultMutableTreeNode("if语句不规范");
 
     /**
      * @author gaojindan
@@ -48,6 +43,7 @@ public class FunCheck extends AnAction{
         rootNode.removeAllChildren();
         lineNode.removeAllChildren();
         commentNode.removeAllChildren();
+        ifNode.removeAllChildren();
         // 获取当前的project对象
         Project project = anActionEvent.getProject();
         // 获取当前文件对象
@@ -76,23 +72,83 @@ public class FunCheck extends AnAction{
                     long lineCount = getLineNumberByIo(codeText);
                     System.out.println("行数:" + lineCount);
                     // 行数大于80了,发出警告
-                    if (lineCount > 2){
+                    if (lineCount > 80){
                         // 行号
                         int lineNumbers = document.getLineNumber(psiMethod.getTextOffset());
                         String text = psiMethod.getName()+"方法超过80行(line "+(lineNumbers+1)+")";
                         DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
                         lineNode.add(tmpTreeNode);
                     }
+                    // 检查if语句是否合格
+                    checkIfStatement(document,psiCodeBlock);
                 }
             }
         }
         // 显示输出内容
         rootNode.add(lineNode);
         rootNode.add(commentNode);
+        rootNode.add(ifNode);
         fileNode.add(rootNode);
         myToolWin.addLineNode(fileNode);
         myToolWin.showToolWin(project);
 
+    }
+
+    /**
+     * @author gaojindan
+     * @date 2019/3/11 0011 17:08
+     * @des 检查If语句规则
+     * @param  psiElement:元素
+     * @return
+     */
+    private void checkIfStatement(Document document,PsiElement psiElement){
+        PsiElement[] psiElements =  psiElement.getChildren();
+        for (PsiElement element : psiElements){
+            // 如果是if语句
+            if (element instanceof PsiIfStatement){
+                PsiIfStatement psiIfStatement = (PsiIfStatement)element;
+                PsiStatement thenSt = psiIfStatement.getThenBranch();
+                String thenText = thenSt.getText();
+                // 没有大括号
+                if (!thenText.startsWith("{")){
+                    int lineNumbers = document.getLineNumber(thenSt.getTextOffset());
+                    String text = "if后面没有使用大括号(line "+(lineNumbers)+")";
+                    DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
+                    ifNode.add(tmpTreeNode);
+                }
+                // else语句
+                PsiStatement elseSt = psiIfStatement.getElseBranch();
+                if (elseSt != null){
+                    // else语句
+                    if (elseSt instanceof PsiExpressionStatement){
+                        if (!elseSt.getText().startsWith("{")){
+                            int lineNumbers = document.getLineNumber(elseSt.getTextOffset());
+                            String text = "else 后面没有使用大括号(line "+(lineNumbers)+")";
+                            DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
+                            ifNode.add(tmpTreeNode);
+                        }
+                    }
+                    // else if语句
+                    if (elseSt instanceof PsiIfStatement){
+                        PsiIfStatement elseIfSt = (PsiIfStatement)elseSt;
+                        thenSt = elseIfSt.getThenBranch();
+                        thenText = thenSt.getText();
+                        // 没有大括号
+                        if (!thenText.startsWith("{")){
+                            int lineNumbers = document.getLineNumber(thenSt.getTextOffset());
+                            String text = "if后面没有使用大括号(line "+(lineNumbers)+")";
+                            DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
+                            ifNode.add(tmpTreeNode);
+                        }
+                    }
+                    // 递归else内容
+                    checkIfStatement(document,elseSt);
+                }
+
+                // 递归if语句内容
+                checkIfStatement(document,thenSt);
+            }
+        }
     }
 
     /**

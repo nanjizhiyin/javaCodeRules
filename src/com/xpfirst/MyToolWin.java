@@ -1,16 +1,16 @@
 package com.xpfirst;
 
-import com.intellij.openapi.editor.*;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.ui.components.JBScrollPane;
@@ -20,41 +20,36 @@ import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
-import static io.netty.handler.codec.http.multipart.DiskFileUpload.prefix;
 
 public class MyToolWin implements ToolWindowFactory {
-    JPanel mainPanel=new JPanel();
-    Tree tree = new Tree();
+    Tree rootTree = new Tree();
     ///构造一个 有滚动条的面板
     JBScrollPane scrollPane=new JBScrollPane();
     private final String rootNodeName = "检查规则";
 
     //定义tree 的根目录
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootNodeName);
-    //构造一个treeModel 对象，进行刷新树操作
-    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 
     public MyToolWin(){
-        tree.setModel(treeModel);
+
+        //构造一个treeModel 对象，进行刷新树操作
+        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+        rootTree.setModel(treeModel);
         Dimension screenSize=Toolkit.getDefaultToolkit().getScreenSize(); //得到屏幕的尺寸
+        JPanel mainPanel=new JPanel();
         //设置主面板的大小
         mainPanel.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2));
         //tree 设置大小
-        tree.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2));
+        rootTree.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2));
         //设置滚动条面板位置
         scrollPane.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2-50));
         //将tree添加道滚动条面板上
-        scrollPane.setViewportView(tree);
+        scrollPane.setViewportView(rootTree);
         //将滚动条面板设置哼可见
         scrollPane.setVisible(true);
         //设置滚动条的滚动速度
@@ -66,20 +61,20 @@ public class MyToolWin implements ToolWindowFactory {
     }
     // 添加行数规则的node
     public void addLineNode(DefaultMutableTreeNode lineNode){
-        treeModel.setRoot(lineNode);
+        rootNode = lineNode;
     }
-    /**
-     * @des 流程列表
-     */
     public void showToolWin(Project project){
-        tree.setModel(treeModel);
-        tree.addMouseListener(new MouseAdapter(){
+
+        //构造一个treeModel 对象，进行刷新树操作
+        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+        rootTree.setModel(treeModel);
+        rootTree.addMouseListener(new MouseAdapter(){
             public void mousePressed(MouseEvent e){
                 //BUTTON3是鼠标右键 BUTTON2是鼠标中键 BUTTON1是鼠标左键
                 // 双击事件
                 if(e.getButton()==e.BUTTON1 && e.getClickCount() == 2){
                     //获取点击的tree节点
-                    DefaultMutableTreeNode note=(DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+                    DefaultMutableTreeNode note=(DefaultMutableTreeNode)rootTree.getLastSelectedPathComponent();
                     if(note!=null){
                         Object[] objects = note.getUserObjectPath();
                         String className = (String)objects[0];
@@ -110,13 +105,12 @@ public class MyToolWin implements ToolWindowFactory {
             }
         });
         //将tree添加道滚动条面板上
-        scrollPane.setViewportView(tree);
+        scrollPane.setViewportView(rootTree);
+        JPanel mainPanel=new JPanel();
         mainPanel.add(scrollPane);
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mainPanel,"", false);
-
-//        final ToolWindowManagerEx toolWindowManager = ToolWindowManagerEx.getInstanceEx();
-//        final ToolWindow antToolWindow = toolWindowManager.getToolWindow(ANT_TOOL_WINDOW_ID);
+        // 获取工具窗口,用于输出结果
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("输出");
         toolWindow.getContentManager().removeAllContents(true);
         toolWindow.getContentManager().addContent(content);
@@ -133,9 +127,8 @@ public class MyToolWin implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(mainPanel,"", false);
-        toolWindow.getContentManager().addContent(content);
+//        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+//        Content content = contentFactory.createContent(mainPanel,"", false);
+//        toolWindow.getContentManager().addContent(content);
     }
 }
