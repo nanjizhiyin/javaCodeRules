@@ -41,11 +41,10 @@ public class MyToolWin implements ToolWindowFactory {
 
     //定义tree 的根目录
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootNodeName);
+    //构造一个treeModel 对象，进行刷新树操作
+    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 
     public MyToolWin(){
-
-        //构造一个treeModel 对象，进行刷新树操作
-        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         tree.setModel(treeModel);
         Dimension screenSize=Toolkit.getDefaultToolkit().getScreenSize(); //得到屏幕的尺寸
         //设置主面板的大小
@@ -67,12 +66,12 @@ public class MyToolWin implements ToolWindowFactory {
     }
     // 添加行数规则的node
     public void addLineNode(DefaultMutableTreeNode lineNode){
-        rootNode = lineNode;
+        treeModel.setRoot(lineNode);
     }
+    /**
+     * @des 流程列表
+     */
     public void showToolWin(Project project){
-
-        //构造一个treeModel 对象，进行刷新树操作
-        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         tree.setModel(treeModel);
         tree.addMouseListener(new MouseAdapter(){
             public void mousePressed(MouseEvent e){

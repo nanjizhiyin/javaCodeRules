@@ -64,42 +64,12 @@ public class FunCheck extends AnAction{
                 PsiClass psiClass = (PsiClass) psiElement;
 
                 // 获取注释
-                PsiComment classComment = null;
-                for (PsiElement tmpEle : psiClass.getChildren()) {
-                    if (tmpEle instanceof PsiComment){
-                        classComment = (PsiComment) tmpEle;
-                        int lineNumbers = document.getLineNumber(classComment.getTextOffset());
-                        // 注释的内容
-                        String tmpText = classComment.getText();
-                        if (tmpText.indexOf("* @author") < 0){
-                            // 没有找到作者
-                            String text = psiClass.getName()+"类没有找到作者(line "+(lineNumbers+1)+")";
-                            addCommentNode(text);
-                        }
-                        if (tmpText.indexOf("* @date") < 0 &&tmpText.indexOf("* @time") < 0){
-                            // 没有找到日期
-                            String text = psiClass.getName()+"类没有找到日期(line "+(lineNumbers+1)+")";
-                            addCommentNode(text);
-                        }
-                        if (tmpText.indexOf("* @des") < 0 &&tmpText.indexOf("* @describe") < 0){
-                            // 没有找到描述
-                            String text = psiClass.getName()+"类没有找到描述(line "+(lineNumbers+1)+")";
-                            addCommentNode(text);
-                        }
-                    }
-                }
-                if (classComment == null){
-                    // 没有注释
-                    int lineNumbers = document.getLineNumber(psiClass.getTextOffset());
-                    String text = psiClass.getName()+"类没有注释(line "+(lineNumbers+1)+")";
-                    DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
-                    commentNode.add(tmpTreeNode);
-                }
+                checkClassComment(document,psiClass);
                 // 方法列表
                 PsiMethod[] methods = psiClass.getMethods();
                 for (PsiMethod psiMethod : methods) {
                     // 获取备注
-
+                    checkMethodComment(document,psiMethod);
                     // 获取大括号里的内容
                     PsiCodeBlock psiCodeBlock = psiMethod.getBody();
                     String codeText = psiCodeBlock.getText();
@@ -113,7 +83,6 @@ public class FunCheck extends AnAction{
                         DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
                         lineNode.add(tmpTreeNode);
                     }
-
                 }
             }
         }
@@ -126,6 +95,87 @@ public class FunCheck extends AnAction{
 
     }
 
+    /**
+     * @author gaojindan
+     * @date 2019/3/11 0011 17:08
+     * @des 检查类的注释规则
+     * @param  psiClass:元素
+     * @return
+     */
+    private void checkClassComment(Document document, PsiClass psiClass){
+        PsiComment classComment = null;
+        for (PsiElement tmpEle : psiClass.getChildren()) {
+            if (tmpEle instanceof PsiComment){
+                classComment = (PsiComment) tmpEle;
+                int lineNumbers = document.getLineNumber(classComment.getTextOffset());
+                // 注释的内容
+                String tmpText = classComment.getText();
+                if (tmpText.indexOf("* @author") < 0){
+                    // 没有找到作者
+                    String text = psiClass.getName()+"类没有找到作者(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+                if (tmpText.indexOf("* @date") < 0 &&tmpText.indexOf("* @time") < 0){
+                    // 没有找到日期
+                    String text = psiClass.getName()+"类没有找到日期(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+                if (tmpText.indexOf("* @des") < 0 &&tmpText.indexOf("* @describe") < 0){
+                    // 没有找到描述
+                    String text = psiClass.getName()+"类没有找到描述(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+            }
+        }
+        if (classComment == null){
+            // 没有注释
+            int lineNumbers = document.getLineNumber(psiClass.getTextOffset());
+            String text = psiClass.getName()+"类没有注释(line "+(lineNumbers+1)+")";
+            DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
+            commentNode.add(tmpTreeNode);
+        }
+    }
+
+    /**
+     * @author gaojindan
+     * @date 2019/3/11 0011 17:08
+     * @des 检查方法的注释规则
+     * @param  psiMethod:元素
+     * @return
+     */
+    private void checkMethodComment(Document document, PsiMethod psiMethod){
+        PsiComment classComment = null;
+        for (PsiElement tmpEle : psiMethod.getChildren()) {
+            if (tmpEle instanceof PsiComment){
+                classComment = (PsiComment) tmpEle;
+                int lineNumbers = document.getLineNumber(classComment.getTextOffset());
+                // 注释的内容
+                String tmpText = classComment.getText();
+                if (tmpText.indexOf("* @author") < 0){
+                    // 没有找到作者
+                    String text = psiMethod.getName()+"方法没有找到作者(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+                if (tmpText.indexOf("* @date") < 0 &&tmpText.indexOf("* @time") < 0){
+                    // 没有找到日期
+                    String text = psiMethod.getName()+"方法没有找到日期(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+                if (tmpText.indexOf("* @des") < 0 &&tmpText.indexOf("* @describe") < 0){
+                    // 没有找到描述
+                    String text = psiMethod.getName()+"方法没有找到描述(line "+(lineNumbers+1)+")";
+                    addCommentNode(text);
+                }
+            }
+        }
+        if (classComment == null){
+            // 没有注释
+            int lineNumbers = document.getLineNumber(psiMethod.getTextOffset());
+            String text = psiMethod.getName()+"方法没有注释(line "+(lineNumbers+1)+")";
+            DefaultMutableTreeNode tmpTreeNode = new DefaultMutableTreeNode(text);
+            commentNode.add(tmpTreeNode);
+        }
+    }
     /**
      * @author gaojindan
      * @date 2019/3/11 0011 17:08
